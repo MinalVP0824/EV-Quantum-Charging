@@ -226,11 +226,6 @@ Figures, `summary.json` and `results_table.md` are written to `results/`.
 * A. Lucas, *Ising formulations of many NP problems*, Frontiers in Physics 2, 2014.
 * Z. Lee, T. Li, S. Low, *ACN-Data: Analysis and Applications of an Open EV Charging Dataset*, ACM e-Energy 2019.
 
-## Team
-
-* Minal Venkatesha Poppur, CMR Institute of Technology
-* *(add teammates)*
-
 ## License
 
 MIT
