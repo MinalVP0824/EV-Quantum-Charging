@@ -1,0 +1,203 @@
+{
+  "instance": "demo",
+  "forecast": {
+    "mae_model_kw": 2.335978058614912,
+    "mae_seasonal_naive_kw": 3.2848195087523195,
+    "improvement_pct": 28.88564950400603,
+    "target_day_mae_kw": 2.93574160512764
+  },
+  "base_load_kw": [
+    41.243325823210085,
+    41.50919628998221,
+    29.074263677023666
+  ],
+  "qubits": 15,
+  "penalty": 404.11103554797864,
+  "schedules": [
+    {
+      "Method": "FCFS",
+      "Valid": "yes",
+      "Peak load (kW)": 72.24,
+      "Energy cost (Rs)": 507.0,
+      "Avg wait (slots)": 0.25,
+      "Detour (Rs)": 20.0,
+      "Total objective (Rs)": 751.76,
+      "Peak vs FCFS": "+0.0%",
+      "Cost vs FCFS": "+0.0%"
+    },
+    {
+      "Method": "Classical optimum",
+      "Valid": "yes",
+      "Peak load (kW)": 59.51,
+      "Energy cost (Rs)": 419.5,
+      "Avg wait (slots)": 1.0,
+      "Detour (Rs)": 0.0,
+      "Total objective (Rs)": 667.8,
+      "Peak vs FCFS": "-17.6%",
+      "Cost vs FCFS": "-17.3%"
+    },
+    {
+      "Method": "Quantum (XY-QAOA)",
+      "Valid": "yes",
+      "Peak load (kW)": 59.51,
+      "Energy cost (Rs)": 419.5,
+      "Avg wait (slots)": 1.0,
+      "Detour (Rs)": 0.0,
+      "Total objective (Rs)": 667.8,
+      "Peak vs FCFS": "-17.6%",
+      "Cost vs FCFS": "-17.3%"
+    },
+    {
+      "Method": "Quantum (X-QAOA)",
+      "Valid": "yes",
+      "Peak load (kW)": 59.51,
+      "Energy cost (Rs)": 419.5,
+      "Avg wait (slots)": 1.0,
+      "Detour (Rs)": 0.0,
+      "Total objective (Rs)": 667.8,
+      "Peak vs FCFS": "-17.6%",
+      "Cost vs FCFS": "-17.3%"
+    },
+    {
+      "Method": "Simulated annealing",
+      "Valid": "yes",
+      "Peak load (kW)": 59.51,
+      "Energy cost (Rs)": 419.5,
+      "Avg wait (slots)": 1.0,
+      "Detour (Rs)": 0.0,
+      "Total objective (Rs)": 667.8,
+      "Peak vs FCFS": "-17.6%",
+      "Cost vs FCFS": "-17.3%"
+    }
+  ],
+  "quantum": [
+    {
+      "Solver": "Quantum (XY-QAOA)",
+      "mixer": "XY",
+      "p": 5,
+      "cvar_alpha": 0.25,
+      "qubits": 15,
+      "transpiled_depth": 613,
+      "cx_gates": 523,
+      "cost_evaluations": 1513,
+      "runtime_s": 13.2,
+      "shots": 4096,
+      "prob_feasible": 0.588,
+      "prob_optimal": 0.1149,
+      "found_optimum": true,
+      "gap_pct": 0.0,
+      "fast_sim_vs_qiskit_fidelity": 1.0,
+      "random_valid_guess_prob_optimal": 0.0303
+    },
+    {
+      "Solver": "Quantum (X-QAOA)",
+      "mixer": "X",
+      "p": 5,
+      "cvar_alpha": 0.25,
+      "qubits": 15,
+      "transpiled_depth": 348,
+      "cx_gates": 510,
+      "cost_evaluations": 1581,
+      "runtime_s": 21.38,
+      "shots": 4096,
+      "prob_feasible": 0.0424,
+      "prob_optimal": 0.0013,
+      "found_optimum": true,
+      "gap_pct": 0.0,
+      "fast_sim_vs_qiskit_fidelity": 1.0,
+      "random_valid_guess_prob_optimal": 0.0303
+    }
+  ],
+  "assignments": {
+    "FCFS": {
+      "V0 Fleet cab": [
+        "Hub A (22 kW)",
+        "18:00"
+      ],
+      "V1 Commuter": [
+        "Mall B (11 kW)",
+        "18:00"
+      ],
+      "V2 Delivery van": [
+        "Hub A (22 kW)",
+        "19:00"
+      ],
+      "V3 Resident": [
+        "Mall B (11 kW)",
+        "19:00"
+      ]
+    },
+    "Classical optimum": {
+      "V0 Fleet cab": [
+        "Hub A (22 kW)",
+        "20:00"
+      ],
+      "V1 Commuter": [
+        "Hub A (22 kW)",
+        "18:00"
+      ],
+      "V2 Delivery van": [
+        "Hub A (22 kW)",
+        "19:00"
+      ],
+      "V3 Resident": [
+        "Mall B (11 kW)",
+        "20:00"
+      ]
+    },
+    "Quantum (XY-QAOA)": {
+      "V0 Fleet cab": [
+        "Hub A (22 kW)",
+        "20:00"
+      ],
+      "V1 Commuter": [
+        "Hub A (22 kW)",
+        "18:00"
+      ],
+      "V2 Delivery van": [
+        "Hub A (22 kW)",
+        "19:00"
+      ],
+      "V3 Resident": [
+        "Mall B (11 kW)",
+        "20:00"
+      ]
+    },
+    "Quantum (X-QAOA)": {
+      "V0 Fleet cab": [
+        "Hub A (22 kW)",
+        "20:00"
+      ],
+      "V1 Commuter": [
+        "Hub A (22 kW)",
+        "18:00"
+      ],
+      "V2 Delivery van": [
+        "Hub A (22 kW)",
+        "19:00"
+      ],
+      "V3 Resident": [
+        "Mall B (11 kW)",
+        "20:00"
+      ]
+    },
+    "Simulated annealing": {
+      "V0 Fleet cab": [
+        "Hub A (22 kW)",
+        "20:00"
+      ],
+      "V1 Commuter": [
+        "Hub A (22 kW)",
+        "18:00"
+      ],
+      "V2 Delivery van": [
+        "Hub A (22 kW)",
+        "19:00"
+      ],
+      "V3 Resident": [
+        "Mall B (11 kW)",
+        "20:00"
+      ]
+    }
+  }
+}
