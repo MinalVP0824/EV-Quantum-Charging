@@ -3,6 +3,8 @@
     streamlit run app.py
 """
 
+import os
+
 import matplotlib
 
 matplotlib.use("Agg")
@@ -15,6 +17,8 @@ from evq.pipeline import WINDOW_HOURS, run
 from evq.problem import build_qubo, make_instance
 from evq.qaoa import qaoa_circuit, qubo_to_ising
 
+ALLOW_LARGE = os.environ.get("EVQ_ALLOW_LARGE") == "1"
+
 st.set_page_config(page_title="Quantum EV Charging Optimizer", page_icon="⚡", layout="wide")
 
 st.title("⚡ Quantum EV Charging Optimizer")
@@ -23,10 +27,13 @@ st.caption("AI demand forecast → QUBO / Ising Hamiltonian → constraint-prese
 
 with st.sidebar:
     st.header("Settings")
-    instance = st.selectbox("Problem size", ["demo", "toy", "large"],
+    # The 19-qubit "large" instance needs about 3 GB of RAM, more than free hosting
+    # provides, so it is only offered when running locally with EVQ_ALLOW_LARGE=1.
+    sizes = ["demo", "toy"] + (["large"] if ALLOW_LARGE else [])
+    instance = st.selectbox("Problem size", sizes,
                             format_func={"toy": "Toy: 2 vehicles, 4 qubits",
                                          "demo": "Demo: 4 vehicles, 2 stations, 15 qubits",
-                                         "large": "Large: 5 vehicles, 19 qubits (slow)"}.get)
+                                         "large": "Large: 5 vehicles, 19 qubits (slow, ~3 GB RAM)"}.get)
     p = st.slider("QAOA depth p", 1, 6, 5 if instance != "large" else 2)
     alpha = st.select_slider("CVaR alpha", [0.1, 0.25, 0.5, 1.0], value=0.25,
                              help="1.0 = standard expectation value. Smaller values focus on the best outcomes.")
@@ -38,7 +45,9 @@ with st.sidebar:
     go = st.button("Run optimizer", type="primary", width="stretch")
 
 
-@st.cache_resource(show_spinner=False)
+# Identical settings are computed once and shared by every visitor. Only a few results
+# are kept so memory stays within free-hosting limits.
+@st.cache_resource(show_spinner=False, max_entries=4, ttl=6 * 3600)
 def cached_run(instance, p, alpha, gamma, use_p90, compare, shots, seed):
     return run(instance, p=p, alpha=alpha, shots=shots, seed=seed, use_p90=use_p90,
                gamma=gamma, compare_x_mixer=compare)
@@ -51,7 +60,8 @@ if go:
 
 if not st.session_state.ran:
     st.info("Pick settings in the sidebar and press **Run optimizer**. The demo instance takes about "
-            "15 to 40 seconds on a laptop.")
+            "15 to 40 seconds on a laptop and up to a minute on the hosted app. Results for the default "
+            "settings are cached, so after the first run they load instantly.")
     st.stop()
 
 with st.spinner("Forecasting demand, building the Hamiltonian and training QAOA..."):
