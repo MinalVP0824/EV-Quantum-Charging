@@ -5,12 +5,17 @@ An AI model forecasts charging demand on the grid feeder, and a variational quan
 
 Submission for **QHack 2026, Round 1**.
 
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://ev-quantum-charging.streamlit.app/)
+
+**Live demo:** https://ev-quantum-charging.streamlit.app/
+
 | | |
 |---|---|
 | Quantum method | Constraint-preserving QAOA (XY mixer) with CVaR objective, plus standard QAOA for comparison |
 | AI method | Gradient-boosted trees with quantile (P10/P90) forecasts |
 | Framework | Qiskit 1.x / 2.x, scikit-learn, Streamlit |
 | Prototype | Jupyter notebook with runnable quantum circuits, Streamlit dashboard, command line pipeline |
+| Live app | [ev-quantum-charging.streamlit.app](https://ev-quantum-charging.streamlit.app/) |
 
 ---
 
@@ -125,7 +130,7 @@ One XY-QAOA layer on the 4-qubit toy instance:
 ## 6. Repository structure
 
 ```
-ev-quantum-charging/
+EV-Quantum-Charging/
 ├── README.md
 ├── requirements.txt
 ├── app.py                         Streamlit dashboard
@@ -151,8 +156,8 @@ Requires **Python 3.10 or newer**.
 
 ```bash
 # 1. clone
-git clone https://github.com/MinalVP0824/ev-quantum-charging.git
-cd ev-quantum-charging
+git clone https://github.com/MinalVP0824/EV-Quantum-Charging.git
+cd EV-Quantum-Charging
 
 # 2. create a virtual environment
 python -m venv .venv
@@ -180,11 +185,15 @@ Run all cells. Total runtime is about 1.5 minutes on a laptop. The notebook is c
 
 **Dashboard**
 
+Try it online without installing anything: **https://ev-quantum-charging.streamlit.app/**
+
+Or run it locally:
+
 ```bash
 streamlit run app.py
 ```
 
-Choose the problem size, QAOA depth, CVaR alpha, peak weight and forecast mode (expected or P90) in the sidebar, then press *Run optimizer*. The demo instance takes about 15 to 40 seconds.
+Choose the problem size, QAOA depth, CVaR alpha, peak weight and forecast mode (expected or P90) in the sidebar, then press *Run optimizer*. The demo instance takes about 15 to 40 seconds locally and up to about a minute on the hosted app. If the hosted app has been idle it may show a wake-up screen first; click the button and wait a few seconds.
 
 **Command line**
 
