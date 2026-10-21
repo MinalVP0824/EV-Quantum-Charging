@@ -61,6 +61,15 @@ def make_instance(name: str, base_load, tariff=None, gamma=0.02, wait_cost=15.0)
             Vehicle("V0 Fleet cab", 20, 0, 1),
             Vehicle("V1 Commuter", 10, 0, 1),
         ]
+    elif name == "trio":
+        # 6 qubits, sized for real quantum hardware: three vehicles share one 22 kW port
+        labels = ["18:00", "19:00", "20:00"]
+        stations = [Station("Hub A (22 kW)", 22)]
+        vehicles = [
+            Vehicle("V0 Fleet cab", 20, 0, 1),
+            Vehicle("V1 Commuter", 12, 1, 2),
+            Vehicle("V2 Delivery van", 16, 0, 1),
+        ]
     else:
         labels = ["18:00", "19:00", "20:00"]
         stations = [Station("Hub A (22 kW)", 22), Station("Mall B (11 kW)", 11)]
