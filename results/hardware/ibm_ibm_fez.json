@@ -1,0 +1,489 @@
+{
+  "meta": {
+    "backend": "ibm_fez",
+    "kind": "IBM quantum hardware",
+    "label": "IBM hardware",
+    "job_id": "dbc9cfs24mrc73cj53m0",
+    "shots": 4096,
+    "p": 1,
+    "error_mitigation": true,
+    "num_qubits_device": 156,
+    "completed_utc": "2026-10-21T10:45:17+00:00"
+  },
+  "experiments": [
+    {
+      "name": "toy",
+      "mixer": "XY",
+      "p": 1,
+      "qubits": 4,
+      "params": [
+        0.25,
+        0.874424707623945
+      ],
+      "transpiled_depth": 47,
+      "two_qubit_gates": 16,
+      "physical_qubits": [
+        144,
+        145,
+        146,
+        147
+      ],
+      "shots": 4096,
+      "p_valid": 0.5078,
+      "p_optimal": 0.2466,
+      "ideal_p_valid": 0.5746,
+      "ideal_p_optimal": 0.2847,
+      "random_p_valid": 0.125,
+      "random_p_optimal": 0.0625,
+      "found_optimum": true,
+      "best_schedule": {
+        "V0 Fleet cab": "19:00",
+        "V1 Commuter": "18:00"
+      },
+      "tvd_vs_ideal": 0.1018,
+      "top_counts": [
+        {
+          "bits": "1001",
+          "count": 1070,
+          "valid": true,
+          "optimal": false,
+          "cost": 418.0
+        },
+        {
+          "bits": "0110",
+          "count": 1010,
+          "valid": true,
+          "optimal": true,
+          "cost": 408.1
+        },
+        {
+          "bits": "1010",
+          "count": 838,
+          "valid": false,
+          "optimal": false,
+          "cost": 779.6
+        },
+        {
+          "bits": "0101",
+          "count": 761,
+          "valid": false,
+          "optimal": false,
+          "cost": 779.3
+        },
+        {
+          "bits": "1011",
+          "count": 61,
+          "valid": false,
+          "optimal": false,
+          "cost": 1369.0
+        },
+        {
+          "bits": "0010",
+          "count": 59,
+          "valid": false,
+          "optimal": false,
+          "cost": 653.0
+        },
+        {
+          "bits": "1101",
+          "count": 52,
+          "valid": false,
+          "optimal": false,
+          "cost": 1256.3
+        },
+        {
+          "bits": "1110",
+          "count": 48,
+          "valid": false,
+          "optimal": false,
+          "cost": 1251.6
+        },
+        {
+          "bits": "0100",
+          "count": 48,
+          "valid": false,
+          "optimal": false,
+          "cost": 540.3
+        },
+        {
+          "bits": "0111",
+          "count": 46,
+          "valid": false,
+          "optimal": false,
+          "cost": 1363.9
+        },
+        {
+          "bits": "1000",
+          "count": 46,
+          "valid": false,
+          "optimal": false,
+          "cost": 545.4
+        },
+        {
+          "bits": "0001",
+          "count": 31,
+          "valid": false,
+          "optimal": false,
+          "cost": 657.8
+        }
+      ]
+    },
+    {
+      "name": "toy",
+      "mixer": "X",
+      "p": 1,
+      "qubits": 4,
+      "params": [
+        5.4488456592364365,
+        0.7435811852371746
+      ],
+      "transpiled_depth": 42,
+      "two_qubit_gates": 11,
+      "physical_qubits": [
+        136,
+        142,
+        143,
+        144
+      ],
+      "shots": 4096,
+      "p_valid": 0.439,
+      "p_optimal": 0.2146,
+      "ideal_p_valid": 0.4897,
+      "ideal_p_optimal": 0.2445,
+      "random_p_valid": 0.125,
+      "random_p_optimal": 0.0625,
+      "found_optimum": true,
+      "best_schedule": {
+        "V0 Fleet cab": "19:00",
+        "V1 Commuter": "18:00"
+      },
+      "tvd_vs_ideal": 0.0924,
+      "top_counts": [
+        {
+          "bits": "0011",
+          "count": 1156,
+          "valid": false,
+          "optimal": false,
+          "cost": 1242.4
+        },
+        {
+          "bits": "1001",
+          "count": 919,
+          "valid": true,
+          "optimal": false,
+          "cost": 418.0
+        },
+        {
+          "bits": "0110",
+          "count": 879,
+          "valid": true,
+          "optimal": true,
+          "cost": 408.1
+        },
+        {
+          "bits": "1100",
+          "count": 726,
+          "valid": false,
+          "optimal": false,
+          "cost": 1017.4
+        },
+        {
+          "bits": "0010",
+          "count": 60,
+          "valid": false,
+          "optimal": false,
+          "cost": 653.0
+        },
+        {
+          "bits": "1011",
+          "count": 59,
+          "valid": false,
+          "optimal": false,
+          "cost": 1369.0
+        },
+        {
+          "bits": "0001",
+          "count": 54,
+          "valid": false,
+          "optimal": false,
+          "cost": 657.8
+        },
+        {
+          "bits": "1110",
+          "count": 47,
+          "valid": false,
+          "optimal": false,
+          "cost": 1251.6
+        },
+        {
+          "bits": "1000",
+          "count": 38,
+          "valid": false,
+          "optimal": false,
+          "cost": 545.4
+        },
+        {
+          "bits": "0111",
+          "count": 38,
+          "valid": false,
+          "optimal": false,
+          "cost": 1363.9
+        },
+        {
+          "bits": "1101",
+          "count": 35,
+          "valid": false,
+          "optimal": false,
+          "cost": 1256.3
+        },
+        {
+          "bits": "0100",
+          "count": 34,
+          "valid": false,
+          "optimal": false,
+          "cost": 540.3
+        }
+      ]
+    },
+    {
+      "name": "trio",
+      "mixer": "XY",
+      "p": 1,
+      "qubits": 6,
+      "params": [
+        0.7941900267112685,
+        2.5232741228718347
+      ],
+      "transpiled_depth": 66,
+      "two_qubit_gates": 27,
+      "physical_qubits": [
+        123,
+        136,
+        141,
+        142,
+        143,
+        144
+      ],
+      "shots": 4096,
+      "p_valid": 0.3257,
+      "p_optimal": 0.1587,
+      "ideal_p_valid": 0.5235,
+      "ideal_p_optimal": 0.2626,
+      "random_p_valid": 0.0312,
+      "random_p_optimal": 0.0156,
+      "found_optimum": true,
+      "best_schedule": {
+        "V0 Fleet cab": "19:00",
+        "V1 Commuter": "20:00",
+        "V2 Delivery van": "18:00"
+      },
+      "tvd_vs_ideal": 0.3821,
+      "top_counts": [
+        {
+          "bits": "101001",
+          "count": 684,
+          "valid": true,
+          "optimal": false,
+          "cost": 602.8
+        },
+        {
+          "bits": "011010",
+          "count": 650,
+          "valid": true,
+          "optimal": true,
+          "cost": 598.9
+        },
+        {
+          "bits": "011001",
+          "count": 610,
+          "valid": false,
+          "optimal": false,
+          "cost": 989.3
+        },
+        {
+          "bits": "010101",
+          "count": 213,
+          "valid": false,
+          "optimal": false,
+          "cost": 1010.3
+        },
+        {
+          "bits": "011011",
+          "count": 205,
+          "valid": false,
+          "optimal": false,
+          "cost": 1588.4
+        },
+        {
+          "bits": "100110",
+          "count": 184,
+          "valid": false,
+          "optimal": false,
+          "cost": 1767.8
+        },
+        {
+          "bits": "011000",
+          "count": 144,
+          "valid": false,
+          "optimal": false,
+          "cost": 745.6
+        },
+        {
+          "bits": "101010",
+          "count": 126,
+          "valid": false,
+          "optimal": false,
+          "cost": 983.8
+        },
+        {
+          "bits": "111001",
+          "count": 119,
+          "valid": false,
+          "optimal": false,
+          "cost": 1544.9
+        },
+        {
+          "bits": "101011",
+          "count": 109,
+          "valid": false,
+          "optimal": false,
+          "cost": 1587.6
+        },
+        {
+          "bits": "001001",
+          "count": 96,
+          "valid": false,
+          "optimal": false,
+          "cost": 793.0
+        },
+        {
+          "bits": "001010",
+          "count": 94,
+          "valid": false,
+          "optimal": false,
+          "cost": 788.3
+        }
+      ]
+    },
+    {
+      "name": "trio",
+      "mixer": "X",
+      "p": 1,
+      "qubits": 6,
+      "params": [
+        5.547914263689146,
+        0.3202987543505524
+      ],
+      "transpiled_depth": 58,
+      "two_qubit_gates": 18,
+      "physical_qubits": [
+        123,
+        136,
+        141,
+        142,
+        143,
+        144
+      ],
+      "shots": 4096,
+      "p_valid": 0.0583,
+      "p_optimal": 0.0266,
+      "ideal_p_valid": 0.0638,
+      "ideal_p_optimal": 0.0349,
+      "random_p_valid": 0.0312,
+      "random_p_optimal": 0.0156,
+      "found_optimum": true,
+      "best_schedule": {
+        "V0 Fleet cab": "19:00",
+        "V1 Commuter": "20:00",
+        "V2 Delivery van": "18:00"
+      },
+      "tvd_vs_ideal": 0.1214,
+      "top_counts": [
+        {
+          "bits": "011100",
+          "count": 280,
+          "valid": false,
+          "optimal": false,
+          "cost": 1243.3
+        },
+        {
+          "bits": "101000",
+          "count": 270,
+          "valid": false,
+          "optimal": false,
+          "cost": 744.8
+        },
+        {
+          "bits": "001100",
+          "count": 229,
+          "valid": false,
+          "optimal": false,
+          "cost": 1432.7
+        },
+        {
+          "bits": "011000",
+          "count": 211,
+          "valid": false,
+          "optimal": false,
+          "cost": 745.6
+        },
+        {
+          "bits": "001101",
+          "count": 175,
+          "valid": false,
+          "optimal": false,
+          "cost": 1290.7
+        },
+        {
+          "bits": "001000",
+          "count": 167,
+          "valid": false,
+          "optimal": false,
+          "cost": 935.0
+        },
+        {
+          "bits": "000100",
+          "count": 153,
+          "valid": false,
+          "optimal": false,
+          "cost": 955.9
+        },
+        {
+          "bits": "101100",
+          "count": 149,
+          "valid": false,
+          "optimal": false,
+          "cost": 1623.0
+        },
+        {
+          "bits": "010100",
+          "count": 143,
+          "valid": false,
+          "optimal": false,
+          "cost": 766.5
+        },
+        {
+          "bits": "001001",
+          "count": 136,
+          "valid": false,
+          "optimal": false,
+          "cost": 793.0
+        },
+        {
+          "bits": "001010",
+          "count": 134,
+          "valid": false,
+          "optimal": false,
+          "cost": 788.3
+        },
+        {
+          "bits": "101001",
+          "count": 130,
+          "valid": true,
+          "optimal": false,
+          "cost": 602.8
+        }
+      ]
+    }
+  ]
+}
