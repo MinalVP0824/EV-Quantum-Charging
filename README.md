@@ -1,230 +1,206 @@
 # Quantum EV Charging Optimizer
 
-**Hybrid Quantum + AI scheduling of electric vehicle charging.**
-An AI model forecasts charging demand on the grid feeder, and a variational quantum algorithm (QAOA, built on Qiskit) decides **which vehicle charges, at which station, and when**, so that charging congestion, peak grid load and energy cost all go down.
+**Hybrid quantum + AI scheduling of electric-vehicle charging across a city.**
+An AI model forecasts the load on each grid feeder, and a variational quantum algorithm (QAOA, built on Qiskit) decides **which vehicle charges, at which hub and when**. The goal is to charge every car on time without creating new grid peaks.
 
-Submission for **QHack 2026, Round 1**.
+Submission for **QHack 2026**.
 
 [![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://ev-quantum-charging.streamlit.app/)
+[![tests](https://github.com/MinalVP0824/EV-Quantum-Charging/actions/workflows/tests.yml/badge.svg)](https://github.com/MinalVP0824/EV-Quantum-Charging/actions/workflows/tests.yml)
 
 **Live demo:** https://ev-quantum-charging.streamlit.app/
 
+![Overview](docs/overview.png)
+
+## Highlights
+
 | | |
 |---|---|
-| Quantum method | Constraint-preserving QAOA (XY mixer) with CVaR objective, plus standard QAOA for comparison |
-| AI method | Gradient-boosted trees with quantile (P10/P90) forecasts |
-| Framework | Qiskit 1.x / 2.x, scikit-learn, Streamlit |
-| Prototype | Jupyter notebook with runnable quantum circuits, Streamlit dashboard, command line pipeline |
-| Live app | [ev-quantum-charging.streamlit.app](https://ev-quantum-charging.streamlit.app/) |
-
----
+| **City-scale digital twin** | A full day in Bengaluru: 120 EVs, 6 hubs, 24 hourly re-plans. Uncontrolled charging adds **205 kW** to the evening peak. Quantum-coordinated charging adds **35 kW** and removes every transformer overload. |
+| **Quantum on the problem it can handle** | The city problem is decomposed into **32 sub-problems of at most 16 qubits**. XY-QAOA matches the brute-force optimum in **31 of 32**; the other is within 0.03%. |
+| **Constraint-preserving QAOA** | A W-state start and an XY mixer keep "each car charges exactly once" true for every state the circuit can reach: **14x more valid shots** and **88x more optimal shots** than standard QAOA at the same depth. |
+| **Warm start + parameter transfer** | Angles trained on one sub-problem start the next: **443 → 50 circuit runs** per sub-problem with the same answer quality. |
+| **Real IBM quantum hardware** | The circuits run on IBM Heron processors through Qiskit Runtime, with error mitigation, and are compared against the ideal simulator and IBM's device noise model. |
+| **Book a charge** | A driver enters car, battery and times. The planner fits them in among the drivers arriving the same hour, re-solves that sub-problem with QAOA in about 3 seconds, and shows the slot, the price and a proposed grid-friendly credit. |
 
 ## 1. The problem
 
-EV adoption is growing faster than charging infrastructure and local grid capacity.
+EV adoption is growing faster than local grid capacity.
 
-* **Congestion:** drivers pile into the same chargers at the same time while other chargers sit idle.
-* **Grid stress:** uncoordinated charging stacks on top of the evening household peak and overloads feeders and transformers.
-* **Cost and waste:** energy is bought in the most expensive time-of-day tariff window.
+* **Grid stress:** cars plug in when drivers get home, on top of the evening household peak, and overload feeders and transformers.
+* **Herding:** price-aware charging apps make it worse in a new way. Every driver's app picks the same cheap hour, so the peak just moves.
+* **Congestion:** drivers pile into the same hubs while others sit idle.
 
-Deciding when, where and which vehicle charges is a combinatorial scheduling problem. With `V` vehicles, `S` stations and `T` time slots there are up to `(S·T)^V` possible schedules, and the problem is NP-hard in general. This is the class of problem that QAOA and quantum annealing target.
+Deciding which car charges where and when is a combinatorial problem: with `V` vehicles, `S` hubs and `T` slots there are up to `(S·T)^V` schedules. It maps naturally onto qubits and an Ising Hamiltonian, which is what QAOA and quantum annealers target.
 
-## 2. Our solution
+## 2. How it works
 
 ```mermaid
 flowchart LR
-    A[Historical charging load] --> B[AI forecaster<br/>gradient boosting + P10/P90]
-    B -- forecast base load per slot --> C[QUBO builder<br/>cost + peak + penalties]
-    C --> D[Ising Hamiltonian]
-    D --> E[XY-mixer QAOA circuit<br/>Qiskit]
-    E <-- parameters / CVaR cost --> F[COBYLA classical optimizer]
-    E -- measured bitstrings --> G[Charging schedule]
-    G --> H[Evaluation vs FCFS, exact optimum,<br/>simulated annealing]
-    H --> I[Dashboard / notebook]
+    A[Feeder load history] --> B[AI forecaster<br/>gradient boosting + P10/P90<br/>+ intraday correction]
+    B -- forecast load per hub and hour --> C[Hourly booking round]
+    C --> D[Decompose: cars competing for<br/>the same chargers, max 16 qubits]
+    D --> E[QUBO / Ising Hamiltonian]
+    E --> F[Warm-started XY-QAOA<br/>Qiskit]
+    F <-- angles, CVaR cost --> G[COBYLA + parameter transfer]
+    F -- best measured bitstring --> H[Bookings: hub + hour]
+    H --> C
+    F --> I[IBM quantum hardware<br/>Qiskit Runtime]
 ```
 
-The key link between the AI and quantum halves: the **forecast becomes a coefficient of the Hamiltonian**. A slot where the model predicts heavy background load becomes more expensive to add EV load to, so QAOA's energy landscape changes with the prediction. Switching the planner to the P90 forecast gives a risk-averse schedule with no other code change.
-
-### Why quantum
-
-* The schedule is a binary optimisation problem that maps directly onto qubits (one qubit per allowed vehicle, station, slot choice) and onto an Ising Hamiltonian.
-* QAOA is a variational algorithm designed for near-term hardware: shallow circuits run on the quantum device while a classical optimizer tunes the angles.
-* Constraint-preserving mixers let the circuit search only over schedules that respect the hard rules, which matters a lot as instances grow (see results).
-* The same formulation runs unchanged on quantum annealers (D-Wave) and gate-based hardware (IBM), so the pipeline improves as hardware improves.
+1. **Forecast.** A gradient-boosting model predicts each feeder's load for the next day with a P10 to P90 band. Every hour the forecast is corrected with the latest measurement. Held-out error: **2.34 kW MAE**, 29% better than "same hour yesterday".
+2. **Decompose.** Each hour, the cars that just arrived are grouped by which chargers and hours they compete for. Each group has at most 4 cars with their 4 best options, so every sub-problem fits in **16 qubits or fewer**.
+3. **Solve with QAOA.** Each sub-problem becomes a QUBO. The forecast enters as a coefficient of the Hamiltonian through the grid-stress term, so the prediction reshapes the energy landscape QAOA explores.
+4. **Book.** The best valid measured schedule becomes real bookings. Later hours see those bookings, exactly like a reservation system.
 
 ## 3. Formulation
 
-Decision variable: `x[v,s,t] = 1` if vehicle `v` charges at station `s` in slot `t`. Variables are only created for physically possible choices (within the vehicle's arrival and deadline window, station power at least the requested energy per slot).
-
-**Cost (Rs)**
+Decision variable: `x[v,s,t] = 1` if vehicle `v` charges at hub `s` in hour `t`.
 
 ```
-H_cost = Σ_{v,s,t} ( τ_t·E_v  +  w·(t − arrival_v)  +  δ_{v,s} ) · x[v,s,t]
-       + γ · Σ_t ( d̂_t + Σ_{v,s} E_v · x[v,s,t] )²
+cost(v,s,t) = τ_t·E_v                                  energy bill (time-of-day tariff)
+            + γ·[(d̂_{s,t} + L_{s,t} + E_v)² − (d̂_{s,t} + L_{s,t})²]   grid stress on the hub's feeder
+            + w·(t − arrival_v)                         waiting
+            + 2·c_km·distance(preferred hub, s)         detour
+
+H = Σ cost(v,s,t)·x[v,s,t]
+  + Σ_{same hub and hour} 2γ·E_v·E_v'·x[v,s,t]·x[v',s,t]     exact coupling between cars on one feeder
+  + B·Σ_{last free port} x[v,s,t]·x[v',s,t]                  one car per port
+  (+ A·Σ_v (1 − Σ x[v,·,·])²  only for standard QAOA; the XY mixer enforces it by construction)
 ```
 
-| Symbol | Meaning |
-|---|---|
-| `τ_t` | time-of-day tariff (Rs/kWh) |
-| `E_v` | energy requested by vehicle `v` (kWh, delivered within one 1-hour slot) |
-| `w` | cost of making a driver wait one slot |
-| `δ_{v,s}` | detour cost if the station is not the driver's preferred one |
-| `d̂_t` | **AI forecast** of background feeder load in slot `t` |
-| `γ` | peak-shaving weight (Rs per kW², a demand-charge proxy) |
-
-**Constraints as penalties**
-
-```
-H_A = A · Σ_v ( 1 − Σ_{s,t} x[v,s,t] )²                    every vehicle charges exactly once
-H_B = B · Σ_{s,t} Σ_{v<v'} x[v,s,t] · x[v',s,t]             one vehicle per charger per slot
-```
-
-`A = B` is set automatically to 1.5 times the largest saving any single violation can buy, and the test suite checks that the global minimum is always a valid schedule. The QUBO is mapped to an Ising Hamiltonian with `x = (1 − z)/2`.
+`d̂` is the AI forecast, `L` is load already booked. Tariff: **0.7× in solar hours (09:00 to 16:00), 1.3× otherwise**, following the structure of India's EV charging guidelines as adopted by KSERC in 2025, on an illustrative ₹7/kWh base.
 
 ## 4. Quantum algorithm
 
 | Component | Choice | Why |
 |---|---|---|
-| Initial state | W state per vehicle (one-hot superposition) | Starts inside the space of "charge exactly once" schedules |
-| Cost layer | `RZ` and `RZZ` rotations from the Ising coefficients | Standard QAOA phase separator |
-| Mixer | XY ring mixer (`XX+YY` gates) inside each vehicle's block | Moves a vehicle between its options without ever breaking the one-hot rule (Hadfield et al., 2019) |
-| Objective | CVaR at alpha = 0.25 | Focuses training on the best outcomes, which is what a sampler returns (Barkoutsos et al., 2020) |
-| Classical optimizer | Grid search for p = 1, then COBYLA; depth grown layer by layer with INTERP warm start | Avoids poor local minima at higher depth (Zhou et al., 2020) |
-| Execution | Trained circuit run on Qiskit `StatevectorSampler`, 4096 shots | Best valid measured bitstring becomes the schedule |
+| Initial state | One W state per vehicle, or a **warm-start** state biased towards each car's cheapest option | Starts inside the space of valid schedules, near a good answer |
+| Cost layer | `RZ` and `RZZ` from the Ising coefficients | Standard QAOA phase separator |
+| Mixer | XY ring (`XX+YY` gates) inside each vehicle's block | Moves a car between its options without ever breaking the one-hot rule (Hadfield et al., 2019) |
+| Objective | CVaR at alpha = 0.25 | Trains on the best outcomes, which is what a sampler returns (Barkoutsos et al., 2020) |
+| Optimizer | Grid search, then COBYLA; depth grown with INTERP; **parameter transfer** between sub-problems | Good angles for similar Hamiltonians carry over (Galda et al., 2021) |
+| Execution | Qiskit `StatevectorSampler` locally; `SamplerV2` on IBM hardware with dynamical decoupling and twirling | Best valid measured bitstring becomes the booking |
 
-For comparison the repo also runs **standard QAOA** (Hadamard start, `RX` mixer, all constraints as penalties) on the same Hamiltonian.
+A small vectorised simulator applies exactly the same gates during training. The real Qiskit circuit is then simulated and compared: the fidelity is 1.0 to machine precision, and a test enforces it.
 
-To keep the training loop fast, cost evaluations use a small vectorised simulator that applies exactly the same gates. After training, the real Qiskit circuit is simulated and its state is compared with the fast simulator; the fidelity is reported in every run (it is 1.0 to machine precision).
+## 5. Results
 
-## 5. Results (demo instance: 4 vehicles, 2 stations, 3 evening slots, 15 qubits)
+### City day (120 EVs, 6 Bengaluru hubs, 24 hours)
 
-Forecaster on a held-out week: **MAE 2.34 kW** versus 3.28 kW for the seasonal-naive baseline (**29% better**).
+![Comparison](docs/city_compare.png)
 
-| Method | Valid | Peak load (kW) | Energy cost (Rs) | Avg wait (slots) | Detour (Rs) | Total objective (Rs) |
-|---|---|---|---|---|---|---|
-| First-come-first-served | yes | 72.2 | 507.0 | 0.25 | 20 | 751.8 |
-| Exact optimum (brute force) | yes | 59.5 | 419.5 | 1.00 | 0 | 667.8 |
-| **XY-QAOA, p = 5** | **yes** | **59.5** | **419.5** | 1.00 | **0** | **667.8** |
-| Simulated annealing | yes | 59.5 | 419.5 | 1.00 | 0 | 667.8 |
-
-**XY-QAOA finds the exact optimum: 17.6% lower peak feeder load and 17.3% lower energy cost than FCFS, with every vehicle charged before its deadline.** The trade-off is a modest increase in average waiting, which the optimizer accepts because the 20:00 slot is cheaper and the grid is less loaded.
-
-| Quantum solver (p = 5) | Qubits | CX gates | P(valid schedule) per shot | P(optimal schedule) per shot |
+| | Charge on arrival | Smart apps, uncoordinated | **Quantum-coordinated** | Classical exact (reference) |
 |---|---|---|---|---|
-| **XY-mixer QAOA** | 15 | 523 | **58.8%** | **11.5%** |
-| Standard X-mixer QAOA | 15 | 510 | 4.2% | 0.13% |
-| Random valid schedule (reference) | | | | 3.0% |
+| Added to the city peak | 205 kW | 186 kW | **35 kW** | 35 kW |
+| Transformer overload hours | 2 | 2 | **0** | 0 |
+| Energy bill for drivers | ₹17,312 | ₹15,613 | **₹16,007** | ₹16,007 |
+| Total system cost | ₹37,809 | ₹36,086 | **₹35,945** | ₹35,949 |
+| Charged in solar hours | 58% | 70% | **70%** | 70% |
+| Average wait | 0.4 h | 1.0 h | 2.0 h | 2.0 h |
 
-The constraint-preserving mixer puts **14x more shots on valid schedules** and **88x more shots on the optimal schedule** than standard QAOA at the same depth. The notebook also shows how P(optimal) grows with depth (2.4% at p = 1 up to 15.4% at p = 6).
+Coordination, not price signals alone, is what removes the peak. Uncoordinated smart apps cut the drivers' bill but still pile everyone into the same hours. The trade-off is a longer wait, always before each driver's departure time.
 
-| | |
-|---|---|
-| ![Forecast](results/01_forecast.png) | ![Load per slot](results/02_load_per_slot.png) |
-| ![Schedules](results/03_schedules.png) | ![Distribution](results/05_distribution.png) |
-| ![Mixer comparison](results/06_mixer_comparison.png) | ![Depth sweep](results/08_depth_sweep.png) |
+### Quantum Lab (one 15-qubit sub-problem)
 
-One XY-QAOA layer on the 4-qubit toy instance:
+![Quantum Lab](docs/lab.png)
 
-![Circuit](results/07_circuit_one_layer_toy.png)
+| XY-QAOA, p = 5 | X-QAOA, p = 5 | Random valid guess |
+|---|---|---|
+| 58.8% valid, **11.5% optimal** per shot | 4.2% valid, 0.13% optimal | 3.0% optimal |
+
+### Hardware: ideal vs IBM Heron noise model vs real device
+
+![Hardware](docs/hardware.png)
+
+| Circuit | 2-qubit gates | Valid shots: ideal → noisy | Optimal shots: ideal → noisy | Random guess |
+|---|---|---|---|---|
+| 4 qubits, XY mixer | 16 | 57% → 54% | 28% → 27% | 6% |
+| 6 qubits, XY mixer | 27 | 52% → 47% | 26% → 23% | 1.6% |
+| 6 qubits, X mixer | 18 | 6% → 6% | 3.5% → 3.3% | 1.6% |
+
+Noisy numbers use IBM's `FakeFez` (156-qubit Heron r2) noise model. Real-device results are added by `hardware/run_ibm.py` and appear on the app's Hardware page.
+
+### Book a charge
+
+![Booking](docs/book.png)
 
 ## 6. Repository structure
 
 ```
 EV-Quantum-Charging/
-├── README.md
-├── requirements.txt
-├── app.py                         Streamlit dashboard
-├── run_pipeline.py                command line pipeline, writes results/
-├── notebooks/
-│   └── EV_Quantum_Charging_Demo.ipynb   full walkthrough with runnable circuits (outputs included)
+├── app.py                         Streamlit entry point (top navigation)
+├── ui/                            pages: overview, city day, booking, quantum lab, hardware, about
+│   ├── charts.py                  Plotly chart builders
+│   └── style.py                   colours, fonts, helpers
 ├── evq/
-│   ├── data.py                    synthetic charging-site load
+│   ├── city.py                    city digital twin, decomposition, strategies, booking
+│   ├── qaoa.py                    QAOA circuits, XY mixer, warm start, parameter transfer
+│   ├── hardware.py                IBM hardware / noisy-simulator runs and analysis
 │   ├── forecast.py                demand forecaster (P10 / P50 / P90)
-│   ├── problem.py                 instances, QUBO builder, metrics
-│   ├── qaoa.py                    QAOA circuits, XY mixer, CVaR training, sampling
+│   ├── problem.py                 single-instance QUBO used by the Quantum Lab
 │   ├── baselines.py               FCFS, brute force, simulated annealing
-│   ├── pipeline.py                end-to-end run
-│   └── viz.py                     figures
-├── tests/
-│   └── test_core.py               correctness checks
-└── results/                       figures and tables from the last run
+│   ├── pipeline.py, serialize.py  end-to-end run and JSON export
+│   └── data.py, viz.py            synthetic load, matplotlib figures
+├── hardware/run_ibm.py            run the circuits on a real IBM quantum computer
+├── scripts/precompute.py          regenerates everything the app shows on first load
+├── notebooks/                     walkthrough notebook with runnable circuits
+├── results/precomputed/           city day and lab results (JSON)
+├── results/hardware/              noisy-simulator and IBM hardware results (JSON)
+├── static/fonts/                  IBM Plex (SIL Open Font License), bundled
+├── tests/                         11 tests, run on every push by GitHub Actions
+└── .streamlit/config.toml         theme
 ```
 
 ## 7. Setup
 
-Requires **Python 3.10 or newer**.
+Requires **Python 3.10 or newer** (3.12 recommended).
 
 ```bash
-# 1. clone
 git clone https://github.com/MinalVP0824/EV-Quantum-Charging.git
 cd EV-Quantum-Charging
-
-# 2. create a virtual environment
 python -m venv .venv
-# Windows
-.venv\Scripts\activate
-# macOS / Linux
-source .venv/bin/activate
-
-# 3. install dependencies
+# Windows: .venv\Scripts\activate    macOS / Linux: source .venv/bin/activate
 pip install -r requirements.txt
-
-# 4. check everything works (about 1 second)
 python -m pytest -q
-```
-
-## 8. Running the prototype
-
-**Jupyter notebook (recommended for reviewing the quantum part)**
-
-```bash
-jupyter notebook notebooks/EV_Quantum_Charging_Demo.ipynb
-```
-
-Run all cells. Total runtime is about 1.5 minutes on a laptop. The notebook is committed with its outputs, so it can also be read directly on GitHub.
-
-**Dashboard**
-
-Try it online without installing anything: **https://ev-quantum-charging.streamlit.app/**
-
-Or run it locally:
-
-```bash
 streamlit run app.py
 ```
 
-Choose the problem size, QAOA depth, CVaR alpha, peak weight and forecast mode (expected or P90) in the sidebar, then press *Run optimizer*. The demo instance takes about 15 to 40 seconds locally and up to about a minute on the hosted app. If the hosted app has been idle it may show a wake-up screen first; click the button and wait a few seconds.
+## 8. Running on IBM quantum hardware
 
-**Command line**
+1. Create a free account at [quantum.cloud.ibm.com](https://quantum.cloud.ibm.com) and an instance on the Open Plan.
+2. Copy your API key and instance CRN, then:
 
 ```bash
-python run_pipeline.py                     # demo instance, p = 5
-python run_pipeline.py --instance toy      # 4 qubits, instant
-python run_pipeline.py --instance large    # 5 vehicles, 19 qubits, a few minutes
-python run_pipeline.py --p 3 --p90         # shallower circuit, risk-averse forecast
-python run_pipeline.py --help
+python hardware/run_ibm.py --save-account --token YOUR_API_KEY --instance YOUR_CRN
+python hardware/run_ibm.py                    # least busy device, waits for the result
+python hardware/run_ibm.py --submit-only      # or submit now ...
+python hardware/run_ibm.py --retrieve JOB_ID  # ... and collect later
+python hardware/run_ibm.py --fake FakeFez     # noisy simulation, no account needed
 ```
 
-Figures, `summary.json` and `results_table.md` are written to `results/`.
+3. Commit the new file in `results/hardware/` and push. The Hardware page shows it automatically.
 
-## 9. Using real data
+## 9. Regenerating results
 
-`evq.forecast.train_and_forecast` accepts any DataFrame with `timestamp`, `demand_kw` and `temp_c` columns at hourly resolution. To use [ACN-Data](https://ev.caltech.edu/dataset), aggregate session energy into hourly site load, join an hourly temperature series, and pass the frame to `evq.pipeline.run(data=df)`.
+```bash
+python scripts/precompute.py        # city day, quantum lab, noisy simulator (about 3 minutes)
+python run_pipeline.py              # single-instance pipeline with matplotlib figures
+```
 
 ## 10. Limitations
 
-* All quantum runs are noiseless statevector simulations. No noise model or hardware run yet.
-* 15 to 19 qubits is small. A classical solver is faster at this size, so we do **not** claim quantum advantage. The goal of this round is a correct, verified, end-to-end hybrid pipeline.
-* Charging is modelled as one full slot per vehicle; partial charging and multi-slot sessions are not yet included.
-* The bundled load data is synthetic so the demo runs offline.
+* Sub-problems are at most 16 qubits. At that size a classical solver is faster, so we do **not** claim quantum advantage. The contribution is a complete hybrid pipeline, decomposed to fit today's hardware and structured to grow with it.
+* Every session is one hour; partial and multi-hour sessions are not modelled yet.
+* Hub sizes, the fleet and feeder loads are simulated around real Bengaluru locations. The optimiser accepts real data without code changes.
+* Real-hardware runs use 4 and 6 qubit circuits because deeper circuits are still dominated by noise.
 
 ## 11. Roadmap
 
-1. Time-window and station-cluster decomposition so city-scale problems become many small QAOA sub-problems.
-2. Noise models in Qiskit Aer, then runs on IBM Quantum hardware; compare with D-Wave annealing on the same QUBO.
-3. Warm-start QAOA from the classical relaxation, and parameter transfer between instances.
-4. Rolling-horizon control: re-forecast and re-optimise every few minutes as vehicles arrive.
-5. Multi-slot charging, vehicle-to-grid discharge at peaks, renewable-aware tariffs and priority classes (emergency vehicles, fleets).
+1. Multi-hour sessions and vehicle-to-grid discharge at peaks.
+2. Larger sub-problems on hardware with error mitigation; quantum annealing on the same QUBO.
+3. Real session data and live feeder measurements from a partner charge-point operator.
+4. A driver app with booking, reminders and the grid-friendly credit.
 
 ## 12. References
 
@@ -232,9 +208,16 @@ Figures, `summary.json` and `results_table.md` are written to `results/`.
 * S. Hadfield et al., *From the Quantum Approximate Optimization Algorithm to a Quantum Alternating Operator Ansatz*, Algorithms 12(2), 2019.
 * P. Barkoutsos et al., *Improving Variational Quantum Optimization using CVaR*, Quantum 4, 256, 2020.
 * L. Zhou et al., *Quantum Approximate Optimization Algorithm: Performance, Mechanism, and Implementation on Near-Term Devices*, PRX 10, 021067, 2020.
+* D. Egger, J. Mareček, S. Woerner, *Warm-starting quantum optimization*, Quantum 5, 479, 2021.
+* A. Galda et al., *Transferability of optimal QAOA parameters between random graphs*, IEEE QCE, 2021.
 * A. Lucas, *Ising formulations of many NP problems*, Frontiers in Physics 2, 2014.
-* Z. Lee, T. Li, S. Low, *ACN-Data: Analysis and Applications of an Open EV Charging Dataset*, ACM e-Energy 2019.
+* Central Electricity Authority, *CO2 Baseline Database for the Indian Power Sector*, FY 2023-24 grid emission factor (0.727 tCO2/MWh).
+
+## Team
+
+* Minal Venkatesha Poppur, CMR Institute of Technology
+* *(add teammates)*
 
 ## License
 
-MIT
+MIT. Bundled IBM Plex fonts are under the SIL Open Font License.

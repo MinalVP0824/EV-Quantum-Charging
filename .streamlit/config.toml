@@ -1,0 +1,68 @@
+# Visual identity: a cool "substation" palette.
+# Indigo ink and concrete greys for structure, quantum teal for our results,
+# red-orange for today's uncontrolled charging, charger-signage yellow for highlights.
+
+[theme]
+# Fonts are bundled in static/fonts (IBM Plex, SIL Open Font License) so the app never
+# waits on an external font server.
+font = "IBM Plex Sans, sans-serif"
+headingFont = "IBM Plex Sans Condensed, IBM Plex Sans, sans-serif"
+headingFontWeights = [700, 600, 600, 600, 600, 600]
+baseRadius = "0.4rem"
+buttonRadius = "0.4rem"
+showWidgetBorder = true
+chartCategoricalColors = ["#0B7A6F", "#D9480F", "#6C5DD3", "#8C96A3", "#C99700"]
+
+[[theme.fontFaces]]
+family = "IBM Plex Sans"
+url = "app/static/fonts/ibm-plex-sans-latin-400-normal.woff2"
+weight = 400
+
+[[theme.fontFaces]]
+family = "IBM Plex Sans"
+url = "app/static/fonts/ibm-plex-sans-latin-500-normal.woff2"
+weight = 500
+
+[[theme.fontFaces]]
+family = "IBM Plex Sans"
+url = "app/static/fonts/ibm-plex-sans-latin-600-normal.woff2"
+weight = 600
+
+[[theme.fontFaces]]
+family = "IBM Plex Sans Condensed"
+url = "app/static/fonts/ibm-plex-sans-condensed-latin-600-normal.woff2"
+weight = 600
+
+[[theme.fontFaces]]
+family = "IBM Plex Sans Condensed"
+url = "app/static/fonts/ibm-plex-sans-condensed-latin-700-normal.woff2"
+weight = 700
+
+[theme.light]
+primaryColor = "#0B7A6F"
+backgroundColor = "#F3F5F7"
+secondaryBackgroundColor = "#E4E9EE"
+textColor = "#13233A"
+borderColor = "#CBD3DC"
+linkColor = "#0B7A6F"
+
+[theme.light.sidebar]
+backgroundColor = "#E9EDF1"
+
+[theme.dark]
+primaryColor = "#2BB3A3"
+backgroundColor = "#0F1826"
+secondaryBackgroundColor = "#182437"
+textColor = "#E6ECF3"
+borderColor = "#2A3A52"
+linkColor = "#5FD0C2"
+
+[theme.dark.sidebar]
+backgroundColor = "#131E2F"
+
+[client]
+toolbarMode = "minimal"
+
+[server]
+headless = true
+enableStaticServing = true
