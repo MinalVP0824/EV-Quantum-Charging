@@ -20,7 +20,7 @@ Submission for **QHack 2026**.
 | **Quantum on the problem it can handle** | The city problem is decomposed into **32 sub-problems of at most 16 qubits**. XY-QAOA matches the brute-force optimum in **31 of 32**; the other is within 0.03%. |
 | **Constraint-preserving QAOA** | A W-state start and an XY mixer keep "each car charges exactly once" true for every state the circuit can reach: **14x more valid shots** and **88x more optimal shots** than standard QAOA at the same depth. |
 | **Warm start + parameter transfer** | Angles trained on one sub-problem start the next: **443 → 50 circuit runs** per sub-problem with the same answer quality. |
-| **Real IBM quantum hardware** | The circuits run on IBM Heron processors through Qiskit Runtime, with error mitigation, and are compared against the ideal simulator and IBM's device noise model. |
+| **Real IBM quantum hardware** | Run on **ibm_fez**, a 156-qubit IBM Heron processor, with error mitigation. On the 6-qubit problem the XY mixer keeps **32.6%** of shots valid against **5.8%** for standard QAOA, and hits the optimal schedule **10x more often than random guessing**. Every hardware run found the optimum. |
 | **Book a charge** | A driver enters car, battery and times. The planner fits them in among the drivers arriving the same hour, re-solves that sub-problem with QAOA in about 3 seconds, and shows the slot, the price and a proposed grid-friendly credit. |
 
 ## 1. The problem
@@ -109,17 +109,20 @@ Coordination, not price signals alone, is what removes the peak. Uncoordinated s
 |---|---|---|
 | 58.8% valid, **11.5% optimal** per shot | 4.2% valid, 0.13% optimal | 3.0% optimal |
 
-### Hardware: ideal vs IBM Heron noise model vs real device
+### Hardware: ideal simulator vs IBM noise model vs real IBM quantum computer
 
 ![Hardware](docs/hardware.png)
 
-| Circuit | 2-qubit gates | Valid shots: ideal → noisy | Optimal shots: ideal → noisy | Random guess |
-|---|---|---|---|---|
-| 4 qubits, XY mixer | 16 | 57% → 54% | 28% → 27% | 6% |
-| 6 qubits, XY mixer | 27 | 52% → 47% | 26% → 23% | 1.6% |
-| 6 qubits, X mixer | 18 | 6% → 6% | 3.5% → 3.3% | 1.6% |
+Real-device results are from **ibm_fez** (156-qubit IBM Heron r2), 4,096 shots per circuit, with dynamical decoupling and Pauli twirling. The noise model is IBM's `FakeFez`.
 
-Noisy numbers use IBM's `FakeFez` (156-qubit Heron r2) noise model. Real-device results are added by `hardware/run_ibm.py` and appear on the app's Hardware page.
+| Circuit | 2-qubit gates | Valid shots: ideal / noise model / **ibm_fez** | Optimal shots: ideal / noise model / **ibm_fez** | Random guess (optimal) | Optimum found on hardware |
+|---|---|---|---|---|---|
+| 4 qubits, XY mixer | 16 | 57.5% / 54.4% / **50.8%** | 28.5% / 27.3% / **24.7%** | 6.3% | yes |
+| 4 qubits, X mixer | 11 | 49.0% / 46.1% / **43.9%** | 24.4% / 22.4% / **21.5%** | 6.3% | yes |
+| 6 qubits, XY mixer | 27 | 52.3% / 47.4% / **32.6%** | 26.3% / 23.5% / **15.9%** | 1.6% | yes |
+| 6 qubits, X mixer | 18 | 6.4% / 6.4% / **5.8%** | 3.5% / 3.3% / **2.7%** | 1.6% | yes |
+
+On real hardware the constraint-preserving XY mixer still puts **5.6x more shots on valid schedules** and **5.9x more on the optimal schedule** than standard QAOA. Noise costs the 6-qubit XY circuit more than the noise model predicts (it has the most two-qubit gates), which is exactly why the city problem is decomposed into small sub-problems.
 
 ### Book a charge
 
@@ -193,7 +196,7 @@ python run_pipeline.py              # single-instance pipeline with matplotlib f
 * Sub-problems are at most 16 qubits. At that size a classical solver is faster, so we do **not** claim quantum advantage. The contribution is a complete hybrid pipeline, decomposed to fit today's hardware and structured to grow with it.
 * Every session is one hour; partial and multi-hour sessions are not modelled yet.
 * Hub sizes, the fleet and feeder loads are simulated around real Bengaluru locations. The optimiser accepts real data without code changes.
-* Real-hardware runs use 4 and 6 qubit circuits because deeper circuits are still dominated by noise.
+* Real-hardware runs use 4 and 6 qubit circuits at depth p = 1 because deeper circuits are still dominated by noise; the 6-qubit XY circuit already loses about a third of its valid shots to noise on ibm_fez.
 
 ## 11. Roadmap
 
