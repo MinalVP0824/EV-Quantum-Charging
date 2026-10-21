@@ -221,7 +221,7 @@ python run_pipeline.py              # single-instance pipeline with matplotlib f
 * Minal Venkatesha Poppur, CMR Institute of Technology
 * Dalavai Vaishnavi, CMR Institute of Technology
 * Shreesha S, CMR Institute of Technology
-* Upasana S
+* Upasana S, Cambridge Institute of Technology
 
 ## License
 
