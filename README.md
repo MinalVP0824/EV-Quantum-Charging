@@ -219,7 +219,9 @@ python run_pipeline.py              # single-instance pipeline with matplotlib f
 ## Team
 
 * Minal Venkatesha Poppur, CMR Institute of Technology
-* *(add teammates)*
+* Dalavai Vaishnavi, CMR Institute of Technology
+* Shreesha S, CMR Institute of Technology
+* Upasana S
 
 ## License
 
